@@ -2,11 +2,15 @@ import os
 from src.client import client
 
 def get_response(messages, qa_chain=None):
+    system_prompt = "Jūs esate naudingas asistentas, kuris visada atsako lietuvių kalba."
+    
     if qa_chain:
         user_message = messages[-1]["content"]
         try:
-            response = qa_chain.invoke({"query": user_message})
-            return response["result"]
+            print(f"Attempting RAG with input: {{'query': '{user_message}'}}")
+            response = qa_chain({"query": user_message})
+            print("RAG succeeded")
+            return response  # LLMChain returns a string directly
         except Exception as e:
             print(f"RAG error: {e}")
             raise
@@ -14,7 +18,7 @@ def get_response(messages, qa_chain=None):
         stream = client.chat.completions.create(
             model="gpt-4o",
             messages=[
-                {"role": "system", "content": "Jūs esate naudingas asistentas, kuris visada atsako lietuvių kalba."}
+                {"role": "system", "content": system_prompt}
             ] + [{"role": m["role"], "content": m["content"]} for m in messages],
             stream=True
         )
